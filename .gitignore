@@ -1,0 +1,29 @@
+# VSCode settings
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# macOS system files
+.DS_Store
+
+# Trash files
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
+*.Trash/
+*.~*
+
+# Environment files
+.env
+.venv/
+env/
+venv/
+
+# Flume state files
+taildir_position.json
