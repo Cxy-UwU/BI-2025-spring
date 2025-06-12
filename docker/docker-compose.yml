@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.8
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.8
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+  flume:
+    build:
+      context: ./flume
+    volumes:
+      - ./flume/flume.conf:/opt/flume/conf/flume.conf
+      - ./flume/taildir_position.json:/opt/flume/taildir_position.json
+      - ../logs:/opt/flume/logs
+    depends_on:
+      - kafka
+    command: >
+      sh -c "bin/flume-ng agent --conf conf --conf-file conf/flume.conf --name agent -Dflume.root.logger=DEBUG,console -Dorg.apache.flume.sink.kafka.KafkaSink.level=DEBUG"
+
+  pgvector-db:
+    image: pgvector/pgvector:pg17
+    container_name: pgvector-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: hajimi
+      POSTGRES_PASSWORD: hajimi
+      POSTGRES_DB: news
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+
+volumes:
+  pgdata:
