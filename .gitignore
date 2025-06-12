@@ -27,3 +27,8 @@ venv/
 
 # Flume state files
 taildir_position.json
+
+
+# Other files
+db
+import_data.py
