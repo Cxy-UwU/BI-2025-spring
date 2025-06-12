@@ -35,3 +35,8 @@ taildir_position.json
 /app/data_source/users.csv
 
 .idea
+
+
+# Other files
+db
+import_data.py
