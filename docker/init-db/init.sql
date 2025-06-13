@@ -65,3 +65,10 @@ CREATE TABLE IF NOT EXISTS news_temperature
     time        TIMESTAMP,
     PRIMARY KEY (news_id, time)
 );
+
+-- 索引优化
+CREATE INDEX IF NOT EXISTS idx_news_category_topic ON news(category, topic);
+CREATE INDEX IF NOT EXISTS idx_news_category ON news(category);
+CREATE INDEX IF NOT EXISTS idx_news_temperature_news_id ON news_temperature(news_id);
+CREATE INDEX IF NOT EXISTS idx_news_temperature_time ON news_temperature(time);
+CREATE INDEX IF NOT EXISTS idx_news_temperature_news_id_time ON news_temperature(news_id, time);
