@@ -8,10 +8,11 @@ process = None
 
 @exposure_bp.route('/start_exposure', methods=['GET'])
 def start_exposure():
+    speed = request.args.get('speed', default=1, type=int)
     global process
     if process and process.poll() is None:
         return "Already running", 400
-    process = subprocess.Popen(["python", "data_transfer.py"])
+    process = subprocess.Popen(["python", "data_transfer.py", str(speed)])
     return "Started", 200
 
 

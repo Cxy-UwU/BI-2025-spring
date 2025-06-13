@@ -8,11 +8,11 @@ def get_recommendations(user_id):
     if not clicked_ids:
         return []
 
-    categories = db.session.query(News.category).filter(News.id.in_(clicked_ids)).distinct().all()
+    categories = db.session.query(News.category).filter(News.news_id.in_(clicked_ids)).distinct().all()
     category_list = [c for (c,) in categories]
     recommended = News.query.filter(
         News.category.in_(category_list),
-        ~News.id.in_(clicked_ids)
+        ~News.news_id.in_(clicked_ids)
     ).limit(10).all()
 
-    return [{'id': n.id, 'title': n.title, 'category': n.category} for n in recommended]
+    return [{'id': n.news_id, 'title': n.title, 'category': n.category} for n in recommended]

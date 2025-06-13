@@ -2,12 +2,13 @@ import time
 import csv
 import json
 import os
+import sys
 from datetime import datetime
 
 
 class DataProvider:
     def __init__(self):
-        self.source_path = os.path.join(os.path.dirname(__file__), 'app', 'data_source', 'exposure_sorted.csv')
+        self.source_path = os.path.join(os.path.dirname(__file__), 'app', 'data_source', 'exposure_sorted_dedup.csv')
         self.config_path = os.path.join(os.path.dirname(__file__), 'input_config.json')
         self.target_path = os.path.join(os.path.dirname(__file__), 'logs', 'target.log')
         self._file = open(self.source_path, newline='', encoding='utf-8')
@@ -65,16 +66,25 @@ class DataProvider:
         return "\n".join([(",".join([str(v) for v in row.values()])) for row in emitted]) + '\n', True
 
 
-dp = DataProvider()
+if __name__ == "__main__":
+    # 支持命令行参数 speed
+    speed = 1
+    if len(sys.argv) > 1:
+        try:
+            speed = int(sys.argv[1])
+        except Exception:
+            pass
 
-while True:
-    batch, has_more = dp.forward(1)
-    with open(dp.target_path, "a", encoding="utf-8") as f:
-        f.write(batch)
-        f.flush()
-        os.fsync(f.fileno())
-    print(batch, flush=True)
-    if not has_more:
-        print("✅ 所有数据已转发完毕。")
-        break
-    time.sleep(5)
+    dp = DataProvider()
+
+    while True:
+        batch, has_more = dp.forward(5 * speed)
+        with open(dp.target_path, "a", encoding="utf-8", newline='\n') as f:
+            f.write(batch)
+            f.flush()
+            os.fsync(f.fileno())
+        print(batch, flush=True)
+        if not has_more:
+            print("✅ 所有数据已转发完毕。")
+            break
+        time.sleep(5)

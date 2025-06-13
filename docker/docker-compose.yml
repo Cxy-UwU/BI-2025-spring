@@ -2,10 +2,15 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.8
     environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+      - TZ=Asia/Shanghai
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
     ports:
       - "2181:2181"
+    volumes:
+      - ./zookeeper/data:/var/lib/zookeeper/data
+      - ./zookeeper/log:/var/lib/zookeeper/log
+    privileged: true
 
   kafka:
     image: confluentinc/cp-kafka:7.5.8
@@ -22,6 +27,12 @@ services:
       - KAFKA_ADVERTISED_LISTENERS=INSIDE://kafka:9092,OUTSIDE://127.0.0.1:9094
       - KAFKA_LISTENERS=INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:9094
       - KAFKA_INTER_BROKER_LISTENER_NAME=INSIDE
+      - KAFKA_AUTO_LEADER_REBALANCE_ENABLE=true
+      - KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE=true
+      - KAFKA_BROKER_ID=1
+      - TZ=Asia/Shanghai
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
 
   flume:
     build:
@@ -31,10 +42,12 @@ services:
       - ./flume/taildir_position.json:/opt/flume/taildir_position.json
       - ../logs:/opt/flume/logs
       - ./flume/log4j2.xml:/opt/flume/conf/log4j2.xml
+    environment:
+      - TZ=Asia/Shanghai
     depends_on:
       - kafka
     command: >
-      sh -c "bin/flume-ng agent --conf conf --conf-file conf/flume.conf --name agent -Dflume.root.logger=DEBUG,console -Dorg.apache.flume.sink.kafka.KafkaSink.level=DEBUG"
+      sh -c "bin/flume-ng agent --conf conf --conf-file conf/flume.conf --name agent"
 
   pgvector-db:
     image: pgvector/pgvector:pg17
