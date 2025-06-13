@@ -30,6 +30,7 @@ services:
       - ./flume/flume.conf:/opt/flume/conf/flume.conf
       - ./flume/taildir_position.json:/opt/flume/taildir_position.json
       - ../logs:/opt/flume/logs
+      - ./flume/log4j2.xml:/opt/flume/conf/log4j2.xml
     depends_on:
       - kafka
     command: >

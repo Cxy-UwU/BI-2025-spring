@@ -1,25 +1,21 @@
+import time
 import csv
 import json
 import os
-import threading
-import atexit
 from datetime import datetime
 
 
 class DataProvider:
     def __init__(self):
-        self.source_path = "../data_source/exposure_sorted.csv"
-        self.config_path = "input_config.json"
-        self.target_path = "../../logs/target.log"
+        self.source_path = os.path.join(os.path.dirname(__file__), 'app', 'data_source', 'exposure_sorted.csv')
+        self.config_path = os.path.join(os.path.dirname(__file__), 'input_config.json')
+        self.target_path = os.path.join(os.path.dirname(__file__), 'logs', 'target.log')
         self._file = open(self.source_path, newline='', encoding='utf-8')
         self._reader = csv.DictReader(self._file)
         self._header = self._reader.fieldnames
         self._current_time = None
         self._buffered_row = None
-        self._transfer_thread = None
-        self._stop_event = threading.Event()
         self._load_state_or_init()
-        atexit.register(self._save_state)
 
     def _parse_time(self, timestr):
         return datetime.strptime(timestr, "%Y-%m-%d %H:%M:%S").timestamp()
@@ -65,34 +61,20 @@ class DataProvider:
             else:
                 self._buffered_row = row
                 break
+        self._save_state()
         return "\n".join([(",".join([str(v) for v in row.values()])) for row in emitted]) + '\n', True
 
-    def start_transfer(self, gap=5, stride=1):
-        def run():
-            import time
-            while not self._stop_event.is_set():
-                batch, has_more = self.forward(stride)
-                print(batch, end="")
-                if not has_more:
-                    print("✅ 所有数据已转发完毕。自动退出线程。")
-                    break
-                time.sleep(gap)
 
-        self._transfer_thread = threading.Thread(target=run, daemon=True)
-        self._transfer_thread.start()
+dp = DataProvider()
 
-    def stop_transfer(self):
-        self._stop_event.set()
-        if self._transfer_thread:
-            self._transfer_thread.join()
-
-
-if __name__ == "__main__":
-    dp = DataProvider()
-    dp.start_transfer(gap=2, stride=1)
-    try:
-        while dp._transfer_thread.is_alive():
-            dp._transfer_thread.join(timeout=1)
-    except KeyboardInterrupt:
-        dp.stop_transfer()
-        print("⛔ 手动中断，退出。")
+while True:
+    batch, has_more = dp.forward(1)
+    with open(dp.target_path, "a", encoding="utf-8") as f:
+        f.write(batch)
+        f.flush()
+        os.fsync(f.fileno())
+    print(batch, flush=True)
+    if not has_more:
+        print("✅ 所有数据已转发完毕。")
+        break
+    time.sleep(5)

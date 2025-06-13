@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+  <Properties>
+    <Property name="LOG_DIR">.</Property>
+  </Properties>
+
+  <Appenders>
+    <!-- ???????????stdout? -->
+    <Console name="Console" target="SYSTEM_OUT">
+      <PatternLayout pattern="%d (%t) [%p - %l] %m%n" />
+    </Console>
+
+    <!-- ???????? -->
+    <RollingFile name="LogFile" fileName="${LOG_DIR}/flume.log"
+                 filePattern="${LOG_DIR}/archive/flume.log.%d{yyyyMMdd}-%i">
+      <PatternLayout pattern="%d{dd MMM yyyy HH:mm:ss,SSS} %-5p [%t] (%C.%M:%L) %equals{%x}{[]}{} - %m%n" />
+      <Policies>
+        <SizeBasedTriggeringPolicy size="100 MB"/>
+        <CronTriggeringPolicy schedule="0 0 0 * * ?"/>
+      </Policies>
+      <DefaultRolloverStrategy min="1" max="20">
+        <Delete basePath="${LOG_DIR}/archive">
+          <IfFileName glob="flume.log.*">
+            <IfAccumulatedFileSize exceeds="1 GB"/>
+          </IfFileName>
+        </Delete>
+      </DefaultRolloverStrategy>
+    </RollingFile>
+  </Appenders>
+
+  <Loggers>
+    <Logger name="org.apache.flume.lifecycle" level="info"/>
+    <Logger name="org.jboss" level="WARN"/>
+    <Logger name="org.apache.avro.ipc.netty.NettyTransceiver" level="WARN"/>
+    <Logger name="org.apache.hadoop" level="INFO"/>
+    <Logger name="org.apache.hadoop.hive" level="ERROR"/>
+
+    <!-- ????????? -->
+    <Root level="INFO">
+      <AppenderRef ref="LogFile"/>
+      <AppenderRef ref="Console"/>
+    </Root>
+  </Loggers>
+</Configuration>

@@ -1,5 +1,5 @@
-from .models import Click, News
-from . import db
+from app.models import Click, News
+from app import db
 
 def get_recommendations(user_id):
     clicked_news_ids = db.session.query(Click.n_id).filter_by(u_id=user_id).all()

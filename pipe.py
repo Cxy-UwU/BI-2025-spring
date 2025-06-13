@@ -1,12 +1,12 @@
-import threading
-import json
 import time
+import threading
 from kafka import KafkaConsumer, KafkaAdminClient
 from kafka.admin import NewTopic
 from kafka.errors import TopicAlreadyExistsError
 
 KAFKA_TOPIC = "log_topic"
 KAFKA_BOOTSTRAP_SERVERS = 'localhost:9094'
+
 
 class KafkaPostgrePipe:
     def __init__(self):
@@ -62,12 +62,12 @@ class KafkaPostgrePipe:
             print("[Kafka] Consumer closed.")
 
 
-if __name__ == "__main__":
-    pipe = KafkaPostgrePipe()
-    pipe.start()
-    try:
-        while not pipe._stop_event.wait(timeout=1):  # 替代 sleep 更优雅
-            pass
-    except KeyboardInterrupt:
-        print("Keyboard interrupt received.")
-        pipe.stop()
+# 运行期间应该保持kafka->postgres的管道持续运行，通过控制exposure -> target.log来添加数据
+# flume和fakfa需要预热，确保看到提示再开始请求
+pipe = KafkaPostgrePipe()
+pipe.start()
+try:
+    while True:
+        time.sleep(5)
+except KeyboardInterrupt:
+    pipe.stop()

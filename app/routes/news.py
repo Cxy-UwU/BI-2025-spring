@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify
-from .models import News
-from .recommend import get_recommendations
+from app.models import News
+from app.utils.recommend import get_recommendations
 
-api = Blueprint('api', __name__)
+news_bp = Blueprint('news', __name__)
 
-@api.route('/api/news', methods=['GET'])
+
+@news_bp.route('/get', methods=['GET'])
 def get_all_news():
     news_list = News.query.limit(50).all()
     return jsonify([{
@@ -14,7 +15,8 @@ def get_all_news():
         'topic': n.topic
     } for n in news_list])
 
-@api.route('/api/recommend', methods=['GET'])
+
+@news_bp.route('/recommend', methods=['GET'])
 def recommend_news():
     user_id = request.args.get('user_id')
     if not user_id:
