@@ -1,8 +1,10 @@
 from . import db
 
+
 class User(db.Model):
     __tablename__ = 'user'
     user_id = db.Column(db.String, primary_key=True)
+
 
 class News(db.Model):
     __tablename__ = 'news'
@@ -15,31 +17,42 @@ class News(db.Model):
     content_length = db.Column(db.Integer)
     first_read_time = db.Column(db.DateTime)
 
+
 class Entity(db.Model):
     __tablename__ = 'entity'
     entity_id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255))
     description = db.Column(db.Text)
 
+
 class NewsEntity(db.Model):
     __tablename__ = 'news_entity'
     news_id = db.Column(db.String, db.ForeignKey('news.news_id'), primary_key=True)
     entity_id = db.Column(db.Integer, db.ForeignKey('entity.entity_id'), primary_key=True)
 
+
 class Click(db.Model):
     __tablename__ = 'click'
     c_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    u_id = db.Column(db.String, db.ForeignKey('user.user_id'), primary_key=True)
-    n_id = db.Column(db.String, db.ForeignKey('news.news_id'), primary_key=True)
-    time = db.Column(db.DateTime, primary_key=True)
+    u_id = db.Column(db.String, db.ForeignKey('user.user_id'))
+    n_id = db.Column(db.String, db.ForeignKey('news.news_id'))
+    time = db.Column(db.DateTime)
     dwell = db.Column(db.Integer)
+    __table_args__ = (
+        db.UniqueConstraint('u_id', 'n_id', 'time'),
+    )
+
 
 class Skip(db.Model):
     __tablename__ = 'skip'
     s_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    u_id = db.Column(db.String, db.ForeignKey('user.user_id'), primary_key=True)
-    n_id = db.Column(db.String, db.ForeignKey('news.news_id'), primary_key=True)
-    time = db.Column(db.DateTime, primary_key=True)
+    u_id = db.Column(db.String, db.ForeignKey('user.user_id'))
+    n_id = db.Column(db.String, db.ForeignKey('news.news_id'))
+    time = db.Column(db.DateTime)
+    __table_args__ = (
+        db.UniqueConstraint('u_id', 'n_id', 'time'),
+    )
+
 
 class NewsTemperature(db.Model):
     __tablename__ = 'news_temperature'
