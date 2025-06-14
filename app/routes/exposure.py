@@ -1,3 +1,6 @@
+import json
+from datetime import datetime
+
 from flask import Blueprint, request
 import subprocess
 
@@ -23,3 +26,19 @@ def stop_exposure():
         process.terminate()
         process = None
     return "Stopped", 200
+
+
+@exposure_bp.route('/get_exposure_time', methods=['GET'])
+def get_exposure_time():
+    config_path = 'input_config.json'
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            ts = data.get('current_time')
+            if ts is not None:
+                time_str = datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+                return time_str, 200
+            else:
+                return "尚无数据", 200
+    except FileNotFoundError:
+        return "尚无数据", 200
