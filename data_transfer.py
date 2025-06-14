@@ -41,6 +41,12 @@ class DataProvider:
         # 重新初始化 reader
         self._file.seek(0)
         self._reader = csv.DictReader(self._file)
+        # 跳过已经处理过的行
+        self._buffered_row = None
+        for row in self._reader:
+            if self._parse_time(row["exposure_time"]) > self._current_time:
+                self._buffered_row = row
+                break
 
     def _save_state(self):
         try:
