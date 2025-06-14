@@ -38,7 +38,7 @@ def _query_interest_trend(user_id=None, granularity='5d', by='topic', limit_days
             COUNT(*) AS click_count,
             SUM(c.dwell) AS total_dwell
         FROM click c
-        JOIN news n ON c.n_id = n.id
+        JOIN news n ON c.n_id = n.news_id
         {where_sql}
         GROUP BY time_window, interest
         ORDER BY time_window
