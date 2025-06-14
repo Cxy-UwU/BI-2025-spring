@@ -2,6 +2,7 @@ import re
 import threading
 import time
 from datetime import datetime, timedelta
+import traceback
 
 import psycopg2
 from kafka import KafkaConsumer, KafkaAdminClient
@@ -10,7 +11,8 @@ from kafka.errors import TopicAlreadyExistsError
 
 KAFKA_TOPIC = "log_topic"
 KAFKA_BOOTSTRAP_SERVERS = 'localhost:9094'
-DB_URL = "postgresql://hajimi:hajimi@localhost:5432/news?client_encoding=utf8"
+# DB_URL = "postgresql://hajimi:hajimi@localhost:5432/news?client_encoding=utf8"
+DB_URL = "postgresql://postgres:123456@localhost:5432/newsdb"
 
 
 def get_conn():
@@ -126,6 +128,8 @@ class KafkaPostgrePipe:
                 print(f"[Import Error] Unknown action: {action}")
         except Exception as e:
             print(f"[DB Insert Error] {e}, data: {data}")
+            traceback.print_exc()
+            self._conn.rollback()
 
     def _update_first_read_time(self, news_id, read_time):
         try:
@@ -136,6 +140,7 @@ class KafkaPostgrePipe:
             ''', (read_time, news_id))
         except Exception as e:
             print(f"[First Read Time Update Error] {e}")
+            self._conn.rollback()
 
     def _update_temperature(self, news_id, click_time):
         try:
@@ -163,6 +168,7 @@ class KafkaPostgrePipe:
 
         except Exception as e:
             print(f"[Temperature Update Error] {e}")
+            self._conn.rollback()
 
     def _align_time_to_stride(self, dt):
         """将任意时间对齐到最接近的 stride 窗口起始时间"""

@@ -1,8 +1,8 @@
 import os
 import psycopg2
 
-DB_URL = "postgresql://hajimi:hajimi@localhost:5432/news?client_encoding=utf8"
-
+# DB_URL = "postgresql://hajimi:hajimi@localhost:5432/news?client_encoding=utf8"
+DB_URL = "postgresql://postgres:123456@localhost:5432/newsdb"
 
 def get_conn():
     import re

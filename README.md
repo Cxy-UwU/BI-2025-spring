@@ -1,3 +1,7 @@
 # 商务智能 期末项目后端
 
 先把容器跑上，然后运行datasource里的init_db.py脚本初始化数据库，接着运行run.py，pipe.py。用前端写好的功能推一点数据到flume，这之后要等待消费端预热，大概两分钟，如果看到pipe有输出了，就说明数据流通了。
+
+配置完kafka和flume后，使用python app/kafka_consumer/consume_kafka.py运行kafka监听脚本，可对数据进行整理并放入news_hot和category_click表中，前端新闻热度趋势表需要用到该项数据
+
+此外，docker中配置了superset，部署后可通过localhost:8088访问superset，配置数据库后可进行表内数据可视化展示。
