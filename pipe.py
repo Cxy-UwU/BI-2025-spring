@@ -67,7 +67,6 @@ class KafkaPostgrePipe:
             bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
             group_id="log_consumer_group",
             auto_offset_reset='earliest',
-            enable_auto_commit=True,
             api_version=(3, 4, 1)
         )
 
@@ -76,6 +75,7 @@ class KafkaPostgrePipe:
         try:
             while not self._stop_event.is_set():
                 msg_pack = consumer.poll(timeout_ms=3000)
+                consumer.commit()
                 total = 0
                 for tp, messages in msg_pack.items():
                     for msg in messages:
