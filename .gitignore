@@ -42,3 +42,4 @@ db
 import_data.py
 /app/data_source/exposure_sorted_dedup.csv
 /docker/zookeeper/
+/input_config.json
