@@ -41,3 +41,4 @@ taildir_position.json
 db
 import_data.py
 /app/data_source/exposure_sorted_dedup.csv
+/docker/zookeeper/
