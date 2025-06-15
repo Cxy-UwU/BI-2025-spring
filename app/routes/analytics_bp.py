@@ -90,4 +90,37 @@ def query_news_clicks():
         for row in result
     ])
 
+@analytics_bp.route('/current_hot_news')
+def current_hot_news():
+    sql = text("""
+        SELECT n.news_id, n.title, n.category, COUNT(*) AS click_count
+        FROM click c
+        JOIN news n ON c.n_id = n.news_id
+        WHERE c.time >= NOW() - INTERVAL '30 minutes'
+        GROUP BY n.news_id, n.title, n.category
+        ORDER BY click_count DESC
+        LIMIT 10
+    """)
+    rows = db.session.execute(sql).fetchall()
+    return jsonify([
+        dict(news_id=r[0], title=r[1], category=r[2], click_count=r[3]) for r in rows
+    ])
+
+@analytics_bp.route('/long_term_hot_categories')
+def long_term_hot_categories():
+    sql = text("""
+        SELECT n.category, ROUND(AVG(click_count), 2) AS avg_clicks FROM (
+            SELECT c.n_id, COUNT(*) AS click_count
+            FROM click c
+            GROUP BY c.n_id
+        ) t
+        JOIN news n ON t.n_id = n.news_id
+        GROUP BY n.category
+        ORDER BY avg_clicks DESC
+        LIMIT 10
+    """)
+    rows = db.session.execute(sql).fetchall()
+    return jsonify([
+        dict(category=r[0], avg_clicks=r[1]) for r in rows
+    ])
 

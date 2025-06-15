@@ -11,7 +11,7 @@ db = SQLAlchemy()
 def create_app():
     engine = create_engine(Config.SQLALCHEMY_DATABASE_URI) # 必须在单独的 conn 中载入插件，之后再初始化数据库！
     with engine.connect() as conn:
-        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        # conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         conn.commit()
 
     app = Flask(__name__)

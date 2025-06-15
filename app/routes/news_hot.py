@@ -93,3 +93,30 @@ def get_category_click_grouped():
         grouped[category][time_group] = count
 
     return jsonify(grouped)
+
+@chart_bp.route('/current_hot', methods=['GET'])
+def get_current_hot_news():
+    sql = text("""
+        SELECT c.n_id, n.title, n.category, COUNT(*) AS click_count
+        FROM click c
+        JOIN news n ON c.n_id = n.news_id
+        WHERE c.time >= (
+            SELECT MAX(time)::timestamp(0) - INTERVAL '1 minute' FROM click
+        ) AND c.time <= (
+            SELECT MAX(time)::timestamp(0) FROM click
+        )
+        GROUP BY c.n_id, n.title, n.category
+        ORDER BY click_count DESC
+        LIMIT 1
+    """)
+    row = db.session.execute(sql).fetchone()
+
+    if row:
+        return jsonify({
+            "news_id": row.n_id,
+            "title": row.title,
+            "category": row.category,
+            "click_count": row.click_count
+        })
+    else:
+        return jsonify({}), 204
