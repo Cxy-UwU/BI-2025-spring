@@ -9,9 +9,7 @@ from kafka import KafkaConsumer, KafkaAdminClient
 from kafka.admin import NewTopic
 from kafka.errors import TopicAlreadyExistsError
 
-KAFKA_TOPIC = "log_topic"
-KAFKA_BOOTSTRAP_SERVERS = 'localhost:9094'
-DB_URL = "postgresql://postgres:123456@localhost:5432/newsdb"
+from config import DB_URL, KAFKA_TOPIC, KAFKA_BOOTSTRAP_SERVERS
 
 
 def get_conn():
@@ -41,7 +39,9 @@ class KafkaPostgrePipe:
 
     def _create_topic_if_not_exists(self):
         try:
-            admin = KafkaAdminClient(bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS)
+            admin = KafkaAdminClient(bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
+                                    #  api_version=(3, 4, 0)
+                                     )
             topic = NewTopic(name=KAFKA_TOPIC, num_partitions=1, replication_factor=1)
             admin.create_topics([topic], validate_only=False)
             admin.close()
@@ -72,7 +72,8 @@ class KafkaPostgrePipe:
             KAFKA_TOPIC,
             bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS,
             group_id="log_consumer_group",
-            auto_offset_reset='earliest'
+            auto_offset_reset='earliest',
+            # api_version=(3, 4, 1)
         )
 
         print(f"[Kafka] Started consuming from topic: {KAFKA_TOPIC}")

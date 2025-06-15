@@ -33,7 +33,8 @@ taildir_position.json
 /app/data_source/news.csv
 /app/data_source/news_entity.csv
 /app/data_source/users.csv
-
+*.csv
+*.txt
 .idea
 
 
@@ -41,3 +42,5 @@ taildir_position.json
 db
 import_data.py
 /app/data_source/exposure_sorted_dedup.csv
+/docker/zookeeper/
+/input_config.json

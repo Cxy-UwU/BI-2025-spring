@@ -1,5 +1,5 @@
 from . import db
-
+from pgvector.sqlalchemy import Vector
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -16,6 +16,7 @@ class News(db.Model):
     title_length = db.Column(db.Integer)
     content_length = db.Column(db.Integer)
     first_read_time = db.Column(db.DateTime)
+    embedding = db.Column(Vector(1536))
 
 
 class Entity(db.Model):

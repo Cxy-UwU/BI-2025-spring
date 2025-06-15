@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.models import News, NewsTemperature
-from app.utils.recommend import get_recommendations
+from app.utils.recommend_utils import get_recommendations
 from sqlalchemy import func
 
 news_bp = Blueprint('news', __name__)

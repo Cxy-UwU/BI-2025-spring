@@ -2,7 +2,9 @@ import os
 import psycopg2
 
 # DB_URL = "postgresql://hajimi:hajimi@localhost:5432/news?client_encoding=utf8"
-DB_URL = "postgresql://postgres:123456@localhost:5432/newsdb"
+# DB_URL = "postgresql://postgres:123456@localhost:5432/newsdb"
+DB_URL = "postgresql://xy:212369@localhost:5432/bi?client_encoding=utf8"
+
 
 def get_conn():
     import re
@@ -59,11 +61,30 @@ def import_news_fast(cur, csv_path):
             f
         )
 
+def insert_embeddings_fast(cur, csv_path):
+    # 1. 创建临时表
+    cur.execute('''
+        CREATE TEMP TABLE temp_embedding (
+            news_id TEXT PRIMARY KEY,
+            embedding TEXT
+        ) ON COMMIT DROP;
+    ''')
+    # 2. COPY 导入临时表
+    with open(csv_path, encoding='utf-8') as f:
+        cur.copy_expert('COPY temp_embedding(news_id, embedding) FROM STDIN WITH CSV HEADER', f)
+    # 3. 批量更新主表
+    cur.execute('''
+        UPDATE news
+        SET embedding = temp_embedding.embedding::vector
+        FROM temp_embedding
+        WHERE news.news_id = temp_embedding.news_id;
+    ''')
 
 def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     users_csv = os.path.join(base_dir, 'users.csv')
     news_csv = os.path.join(base_dir, 'news.csv')
+    embedding_csv = os.path.join(base_dir, 'embedding.csv')
     conn = get_conn()
     try:
         with conn:
@@ -71,6 +92,7 @@ def main():
                 clear_tables(cur)
                 import_users_fast(cur, users_csv)
                 import_news_fast(cur, news_csv)
+                insert_embeddings_fast(cur, embedding_csv)
         print("✅ 数据导入完成。")
     finally:
         conn.close()
