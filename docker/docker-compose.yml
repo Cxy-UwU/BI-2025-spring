@@ -62,5 +62,29 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
 
+  superset:
+    image: apache/superset:latest
+    container_name: superset
+    ports:
+      - "8088:8088"
+    environment:
+      SUPERSET_SECRET_KEY: 'this_IS_a_SECRET_key'
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: admin
+      ADMIN_FIRST_NAME: Superset
+      ADMIN_LAST_NAME: Admin
+      ADMIN_EMAIL: admin@example.com
+    volumes:
+      - ./superset:/app/superset_home
+    depends_on:
+      - pgvector-db
+    command: >
+      sh -c "pip install psycopg2-binary &&
+             superset db upgrade &&
+             superset fab create-admin --username admin --firstname Superset --lastname Admin --email admin@example.com --password admin &&
+             superset init &&
+             superset run -h 0.0.0.0 -p 8088"
+
+
 volumes:
   pgdata:

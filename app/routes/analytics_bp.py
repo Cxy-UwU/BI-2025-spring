@@ -1,0 +1,78 @@
+# analytics.py
+from flask import Blueprint, request, jsonify
+from sqlalchemy import text
+from app import db
+
+analytics_bp = Blueprint('analytics', __name__)
+
+@analytics_bp.route('/topics', methods=['GET'])
+def get_topics():
+    rows = db.session.execute(text("SELECT DISTINCT category FROM category_click")).fetchall()
+    return jsonify([r[0] for r in rows])
+
+
+
+@analytics_bp.route('/query', methods=['POST'])
+def query_news_clicks():
+    data = request.get_json()
+    conditions = []
+    params = {}
+
+    if data.get('start_time'):
+        conditions.append("c.time >= :start_time")
+        params['start_time'] = data['start_time']
+    if data.get('end_time'):
+        conditions.append("c.time <= :end_time")
+        params['end_time'] = data['end_time']
+    if data.get('topics'):
+        conditions.append("n.category = ANY(:topics)")
+        params['topics'] = data['topics']
+    if data.get('title_length_min') is not None:
+        conditions.append("char_length(n.title) >= :title_min")
+        params['title_min'] = data['title_length_min']
+    if data.get('title_length_max'):
+        conditions.append("char_length(n.title) <= :title_max")
+        params['title_max'] = data['title_length_max']
+    if data.get('content_length_min') is not None:
+        conditions.append("char_length(n.content) >= :content_min")
+        params['content_min'] = data['content_length_min']
+    if data.get('content_length_max'):
+        conditions.append("char_length(n.content) <= :content_max")
+        params['content_max'] = data['content_length_max']
+    if data.get('users'):
+        conditions.append("c.u_id = ANY(:user_ids)")
+        params['user_ids'] = data['users']
+
+    where_clause = " AND ".join(conditions) if conditions else "TRUE"
+
+    sql = text(f"""
+        SELECT
+            c.n_id AS news_id,
+            n.title,
+            n.category,
+            char_length(n.content) AS content_length,
+            COUNT(*) AS click_count,
+            MIN(c.time) AS first_click,
+            MAX(c.time) AS last_click
+        FROM click c
+        JOIN news n ON c.n_id = n.news_id
+        WHERE {where_clause}
+        GROUP BY c.n_id, n.title, n.category, n.content
+        ORDER BY click_count DESC
+    """)
+
+    result = db.session.execute(sql, params).fetchall()
+    return jsonify([
+        {
+            'news_id': row.news_id,
+            'title': row.title,
+            'category': row.category,
+            'content_length': row.content_length,
+            'click_count': row.click_count,
+            'first_click': row.first_click.strftime('%Y-%m-%d %H:%M:%S'),
+            'last_click': row.last_click.strftime('%Y-%m-%d %H:%M:%S'),
+        }
+        for row in result
+    ])
+
+
