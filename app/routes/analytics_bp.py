@@ -2,8 +2,15 @@
 from flask import Blueprint, request, jsonify
 from sqlalchemy import text
 from app import db
+from datetime import datetime
 
 analytics_bp = Blueprint('analytics', __name__)
+
+def parse_datetime(dt_str):
+    try:
+        return datetime.strptime(dt_str, '%Y-%m-%d %H:%M:%S')
+    except:
+        return None
 
 @analytics_bp.route('/topics', methods=['GET'])
 def get_topics():
@@ -19,11 +26,17 @@ def query_news_clicks():
     params = {}
 
     if data.get('start_time'):
-        conditions.append("c.time >= :start_time")
-        params['start_time'] = data['start_time']
+        start_time = parse_datetime(data['start_time'])
+        print(start_time)
+        if start_time:
+            conditions.append("c.time >= :start_time")
+            params['start_time'] = start_time
     if data.get('end_time'):
-        conditions.append("c.time <= :end_time")
-        params['end_time'] = data['end_time']
+        end_time = parse_datetime(data['end_time'])
+        print(end_time)
+        if end_time:
+            conditions.append("c.time <= :end_time")
+            params['end_time'] = end_time
     if data.get('topics'):
         conditions.append("n.category = ANY(:topics)")
         params['topics'] = data['topics']
@@ -44,6 +57,8 @@ def query_news_clicks():
         params['user_ids'] = data['users']
 
     where_clause = " AND ".join(conditions) if conditions else "TRUE"
+
+    print(where_clause)
 
     sql = text(f"""
         SELECT
