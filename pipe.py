@@ -32,9 +32,9 @@ class KafkaPostgrePipe:
         self._thread = threading.Thread(target=self._consume_loop, daemon=True)
         self._conn = None
         self._cur = None
-        self.temperature_counts = {}  # news_id -> count in 10-minute window
-        self.click_counter = {}       # news_id -> count in 1-minute window
-        self.category_counter = {}    # category -> count in 1-minute window
+        self.temperature_counts = {}
+        self.click_counter = {}
+        self.category_counter = {}
         self.temp_window_start = None
         self.hot_window_start = None
         self.temp_stride_seconds = 600
